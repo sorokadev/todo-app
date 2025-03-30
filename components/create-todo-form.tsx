@@ -1,50 +1,58 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { useMutation } from "@apollo/client"
-import { CREATE_TODO } from "@/lib/gql/mutations"
-import { GET_ALL_TODOS } from "@/lib/gql/queries"
-import type { CreateTodoData, CreateTodoVariables } from "@/lib/gql/types"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Loader2 } from "lucide-react"
+import type React from "react";
+import { useState } from "react";
+import { useMutation } from "@apollo/client";
+import { CREATE_TODO } from "@/lib/gql/mutations";
+import { GET_ALL_TODOS } from "@/lib/gql/queries";
+import type {
+  CreateTodoData,
+  CreateTodoVariables,
+  Todo,
+} from "@/lib/gql/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 export default function CreateTodoForm() {
-  const [title, setTitle] = useState("")
+  const [title, setTitle] = useState("");
 
-  const [createTodo, { loading }] = useMutation<CreateTodoData, CreateTodoVariables>(CREATE_TODO, {
+  const [createTodo, { loading }] = useMutation<
+    CreateTodoData,
+    CreateTodoVariables
+  >(CREATE_TODO, {
     onCompleted: () => {
-      setTitle("")
+      setTitle("");
     },
     update: (cache, { data }) => {
-      if (!data) return
+      if (!data) return;
 
       // Update the cache with the new todo
-      const existingTodos = cache.readQuery({ query: GET_ALL_TODOS })
+      const existingTodos = cache.readQuery<{ todos: Todo[] }>({
+        query: GET_ALL_TODOS,
+      });
       if (existingTodos && "todos" in existingTodos) {
         cache.writeQuery({
           query: GET_ALL_TODOS,
           data: {
             todos: [...existingTodos.todos, data.createTodo],
           },
-        })
+        });
       }
     },
-  })
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!title.trim()) return
+    e.preventDefault();
+    if (!title.trim()) return;
 
     createTodo({
       variables: {
         input: { title: title.trim() },
       },
-    })
-  }
+    });
+  };
 
   return (
     <Card>
@@ -72,6 +80,5 @@ export default function CreateTodoForm() {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
-
